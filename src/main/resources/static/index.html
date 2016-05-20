@@ -1,0 +1,148 @@
+﻿<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"> <![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"> <![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!-->
+<html lang="en"> <!--<![endif]-->
+<head>
+
+    <!-- Basic Page Needs
+  ================================================== -->
+	<meta charset="utf-8">
+	<title>Chat</title>
+	<meta name="description" content="Me Messing arounf">
+	<meta name="author" content="Steve King">
+	
+    <!-- Mobile Specific Metas
+  ================================================== -->
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <!-- CSS
+  ================================================== -->
+  	<link rel="stylesheet" href="css/zerogrid.css">
+	<link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/steve.css">
+    <script src="js/sockjs-0.3.4.js"></script>
+    <script src="js/stomp.js"></script>
+	
+	<!--[if lt IE 8]>
+       <div style=' clear: both; text-align:center; position: relative;'>
+         <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+           <img src="http://storage.ie6countdown.com/assets/100/images/banners/warning_bar_0000_us.jpg" border="0" height="42" width="820" alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today." />
+        </a>
+      </div>
+    <![endif]-->
+    <!--[if lt IE 9]>
+		<script src="js/html5.js"></script>
+		<script src="js/css3-mediaqueries.js"></script>
+	<![endif]-->
+	
+	<!--<link href='./images/favicon.ico' rel='icon' type='image/x-icon'/> -->
+
+
+    <script type="text/javascript">
+        var stompClient = null;
+
+        function setConnected(connected) {
+            document.getElementById('signin').style.display = connected ? 'none' : 'block';
+            document.getElementById('conversationDiv').style.display = !connected ? 'none' : 'block';
+            //document.getElementById('name').disabled = connected;
+
+            document.getElementById('response').innerHTML = '';
+        }
+
+        function connect() {
+            var socket = new SockJS('/hello');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function(frame) {
+                setConnected(true);
+                console.log('Connected: ' + frame);
+                stompClient.subscribe('/topic/greetings', function(greeting){
+                    showGreeting(JSON.parse(greeting.body).content);
+                });
+            });
+        }
+
+        function disconnect() {
+            if (stompClient != null) {
+                stompClient.disconnect();
+            }
+            setConnected(false);
+            console.log("Disconnected");
+        }
+
+        function sendMsg() {
+            var name = document.getElementById('name').value;
+            var msg = document.getElementById('msg').value;
+            stompClient.send("/app/hello", {}, JSON.stringify({ 'name': name , 'msg' : msg }));
+        }
+
+        function showGreeting(message) {
+            var response = document.getElementById('response');
+            var p = document.createElement('p');
+            p.style.wordWrap = 'break-word';
+            p.appendChild(document.createTextNode(message));
+            response.appendChild(p);
+        }
+    </script>
+</head>
+<body onload="setConnected()">
+<!-- Header -->
+<header>
+	<div class="wrap-header zerogrid">
+		<div id="logo"><a href="#">CHAT!</a></div>
+		
+		
+	</div>
+</header>
+
+<div id="signin" class="signin" >
+	<p class="signin-text">Enter Name and Connect</p>
+  <input type="text" id="name" class="signin-input" />
+	<button class="signin-btn" onclick="connect();"  >Connect </button>
+</div>
+
+<div id="conversationDiv">
+	<nav >
+		<div class="wrap-nav zerogrid">
+			<div class="menu">
+				<ul>
+					<!--<li><a href="#" onclick="connect();">Connect</a></li>-->
+					<li><a href="#" onclick="disconnect()">Disconnect</a></li>
+				
+				</ul>
+			</div>
+			
+			<div class="minimenu"><div>MENU</div>
+				<select onchange="location=this.value">
+					<option></option>
+					<option value="index.html">Disconnect</option>
+
+				</select>
+			</div>		
+		</div>
+	</nav>
+
+
+
+	<div class="featured">
+		<div class="wrap-featured zerogrid">
+			<div class="chat-box">
+                <p id="response"> </p>
+            </div>
+            <input type="text" class="chat-box-input" id="msg" size="100px" />
+			<button class="chat-box-btn" onclick="sendMsg()"> Send </button>
+		</div>
+	</div>
+</div>
+<!--Footer -->
+<footer>
+	<div class="wrap-footer">
+		<div class="copyright">
+			Built (badly) by Steve King
+		</div>
+	</div>
+</footer>
+
+</body></html>
